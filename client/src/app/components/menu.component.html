@@ -1,0 +1,79 @@
+<div class="row mt-3">
+  <div class="col d-flex justify-content-between align-items-center">
+    <div class="fs-1 fw-bold text-primary">Menu (${{ (totalPriceOfItems$ | async) || 0 }})</div>
+    <div>
+      <button type="button" class="btn btn-primary"
+        [disabled]="(totalQtyOfItems$ | async) == 0"
+        (click)="placeOrder()">
+        Place Order ({{ (totalQtyOfItems$ | async) || 0 }})
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- each row display a single menu item -->
+<div *ngIf="menuItems$ | async as menuItems">
+  @for (mi of menuItems; let idx = $index; track mi) {
+    <div class="row mb-2">
+      <div class="col">
+        <div class="menu-item">
+          <div>
+            <button type="button" class="btn btn-warning"
+              (click)="removeItem(mi.name)">
+              <i class="bi bi-x-square"></i>
+            </button>
+          </div>
+          <div class="menu-details">
+            <div>Name: <span class="fw-bold"> {{ mi.name }} </span> </div>
+            <div>Description:
+              <span class="fst-italic">
+                {{ mi.description }}
+              </span>
+            </div>
+            <div>Price:
+                {{ mi.price }}
+            </div>
+            <div></div>
+              <div class="text-danger fw-bold" 
+                *ngIf="mi.quantity > 0">Quantity: {{ mi.quantity }}</div>
+          </div>
+          <div class="menu-button-end">
+            <button type="button" class="btn btn-success"
+              (click)="addItem(mi)">
+              <i class="bi bi-plus-circle"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!--
+<div class="row mb-2">
+  <div class="col">
+    <div class="menu-item">
+      <div>
+        <button type="button" class="btn btn-warning">
+          <i class="bi bi-x-square"></i>
+        </button>
+      </div>
+      <div class="menu-details">
+        <div>Name: <span class="fw-bold"> XXX </span> </div>
+        <div>Description:
+          <span class="fst-italic">
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+          </span>
+        </div>
+        <div></div>
+          <div class="text-danger fw-bold">Quantity: XXX</div>
+      </div>
+      <div class="menu-button-end">
+        <button type="button" class="btn btn-success">
+          <i class="bi bi-plus-circle"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+-->

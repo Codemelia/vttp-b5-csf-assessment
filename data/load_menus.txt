@@ -1,0 +1,3 @@
+# TODO: Task 1.1
+mongoimport --uri="mongodb://mongo:XCBeMqPqEngFWMylSUpVkWRvrSVsoQKx@switchback.proxy.rlwy.net:28701/?authSource=admin"
+--collection=menus --db=restaurant --type=json --jsonArray --file=./data/menus.json --drop
