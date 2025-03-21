@@ -109,9 +109,9 @@ export class PlaceOrderComponent implements OnInit, OnDestroy {
         }
       ),
       catchError(
-        (error: OrderResponse) => {
+        (error) => {
           console.error('>>> Error after order submit: ', error)
-          alert(error.message)
+          alert(error.error.message)
           return throwError(() => error)
         } 
       )

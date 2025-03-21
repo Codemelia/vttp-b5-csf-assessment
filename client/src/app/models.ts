@@ -30,5 +30,5 @@ export interface OrderResponse {
     orderId: string | null
     paymentId: string | null
     total: number | null
-    timestamp: string | null
+    timestamp: number | null
 }

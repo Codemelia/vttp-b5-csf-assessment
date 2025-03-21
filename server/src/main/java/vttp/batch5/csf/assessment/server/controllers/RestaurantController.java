@@ -96,7 +96,7 @@ public class RestaurantController {
         .add("orderId", orderId)
         .add("paymentId", (String) feedback.get("paymentId"))
         .add("total", totalOrderPrice)
-        .add("timestamp", feedback.get("timestamp").toString())
+        .add("timestamp", (Long) feedback.get("timestamp"))
         .build();
       return ResponseEntity.ok(successJson.toString());
 

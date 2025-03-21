@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { RestaurantService } from '../restaurant.service';
 import { OrderResponse } from '../models';
+import { formatDate } from '@angular/common';
 
 @Component({
   selector: 'app-confirmation',
@@ -14,12 +15,12 @@ export class ConfirmationComponent implements OnInit {
   private restSvc = inject(RestaurantService)
 
   response!: OrderResponse
-  // date!: Date
+  date!: string
 
   ngOnInit(): void {
     this.response = this.restSvc.getOrderResponse()
     console.log('>>> Timestamp: ', this.response.timestamp)
-    // this.date = new Date(this.response.timestamp!)
+    this.date = new Date(this.response.timestamp!).toLocaleDateString()
     // invalid date
   }
 
