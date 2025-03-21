@@ -9,6 +9,8 @@ export class RestaurantService {
   // inject http
   private http = inject(HttpClient)
 
+  orderResponse!: OrderResponse
+
   // TODO: Task 2.2
   // You change the method's signature but not the name
   // gets menu items from server
@@ -27,6 +29,14 @@ export class RestaurantService {
 
     return this.http.post<OrderResponse>('/api/food_order', order,
     { headers: headers })
+  }
+
+  saveOrderResponse(response: OrderResponse) {
+    this.orderResponse = response
+  }
+
+  getOrderResponse() {
+    return this.orderResponse
   }
 
 }

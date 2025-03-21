@@ -1,12 +1,11 @@
 package vttp.batch5.csf.assessment.server.controllers;
 
 import java.io.StringReader;
-import java.net.URISyntaxException;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -81,26 +80,36 @@ public class RestaurantController {
     JsonArray itemsArray = orderJson.getJsonArray("items");
     for (JsonValue v : itemsArray) {
       JsonObject itemJson = v.asJsonObject();
-      double itemSumPrice = itemJson.getJsonNumber("price").doubleValue() * itemJson.getInt("quantity"); // get sum price for each item
+      double itemSumPrice = 
+        itemJson.getJsonNumber("price").doubleValue() * itemJson.getInt("quantity"); // get sum price for each item
       totalOrderPrice += itemSumPrice; // add sum price to total order price
     }
-    System.out.printf(">>> Order total: %d", totalOrderPrice);
+    System.out.printf(">>> Order total: %f", totalOrderPrice);
 
     // invoke payment gateway service
     try {
-      restSvc.makePayment(orderId, username, MY_OFFICIAL_NAME, totalOrderPrice, itemsArray);
-    } catch (Exception e) {
-      
-    }
-    
-    if (!paymentSuccess) {
-      JsonObject errorJson = Json.createObjectBuilder()
-        .add("message", "Invalid username and/or password")
-        .build();
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body()
-    }
 
-    return ResponseEntity.ok("{}");
+      Map<String, Object> feedback = 
+        restSvc.makePayment(orderId, username, MY_OFFICIAL_NAME, totalOrderPrice, itemsArray);
+      
+      JsonObject successJson = Json.createObjectBuilder()
+        .add("orderId", orderId)
+        .add("paymentId", (String) feedback.get("paymentId"))
+        .add("total", totalOrderPrice)
+        .add("timestamp", feedback.get("timestamp").toString())
+        .build();
+      return ResponseEntity.ok(successJson.toString());
+
+    } catch (Exception e) {
+
+      System.out.printf(">>> Error occurred while saving: %s", e.getMessage());
+      JsonObject errorJson = Json.createObjectBuilder()
+        .add("message", e.getMessage())
+        .build();
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(errorJson.toString());
+
+    }
 
   }
 }

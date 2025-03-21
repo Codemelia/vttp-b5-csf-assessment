@@ -1,5 +1,6 @@
 package vttp.batch5.csf.assessment.server.repositories;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -11,6 +12,9 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
+import vttp.batch5.csf.assessment.server.models.Item;
 
 @Repository
 public class OrdersRepository {
@@ -52,6 +56,22 @@ public class OrdersRepository {
   // insert order details into mongodb after payment success
   public Document insertOrder(String orderId, String paymentId, String username, 
     double total, Date orderDate, JsonArray itemsArray) {
+
+    // convert items array to list
+    List<Item> items = new ArrayList<>();
+
+    for (JsonValue v : itemsArray) {
+
+      JsonObject itemJson = v.asJsonObject();
+
+      Item item = new Item(
+        itemJson.getString("id"), 
+        itemJson.getJsonNumber("price").doubleValue(),
+        itemJson.getInt("quantity"));
+
+      items.add(item);
+
+    }
       
     // build document
     Document doc = new Document()
@@ -61,7 +81,7 @@ public class OrdersRepository {
       .append("username", username)
       .append("total", total)
       .append("timestamp", orderDate)
-      .append("items", itemsArray);
+      .append("items", items);
 
     System.out.printf(">>> Inserting order into Mongo: %s", doc.toString());
 

@@ -1,15 +1,13 @@
 package vttp.batch5.csf.assessment.server.services;
 
 import java.io.StringReader;
-import java.net.URI;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
@@ -37,9 +35,7 @@ public class RestaurantService {
   private final RestTemplate template = new RestTemplate();
 
   // payment gateway link
-  private static final String PAYMENT_URL = """
-    https://payment-service-production-a75a.up.railway.app/    
-  """;
+  private static final String PAYMENT_URL = "https://payment-service-production-a75a.up.railway.app/api/payment";
 
   // TODO: Task 2.2
   // You may change the method's signature
@@ -81,7 +77,7 @@ public class RestaurantService {
   }
 
   // invoke payment gateway service
-  public boolean makePayment(String orderId, String payer, String payee, double payment, JsonArray itemsArray) {
+  public Map<String, Object> makePayment(String orderId, String payer, String payee, double payment, JsonArray itemsArray) {
 
     // build json object
     JsonObject paymentJson = Json.createObjectBuilder()
@@ -91,19 +87,30 @@ public class RestaurantService {
       .add("payment", payment)
       .build();
 
-    // set with and content type
-    HttpHeaders headers = new HttpHeaders();
-    headers.add("X-Authenticate", payer); // authentication header
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    List<MediaType> mediaTypes = new ArrayList<>();
-    mediaTypes.add(MediaType.APPLICATION_JSON);
-    headers.setAccept(mediaTypes);
+    System.out.printf(">>> Payment JSON built: %s", paymentJson.toString());
 
-    URI paymentUri = URI.create(PAYMENT_URL);
+    /* 
+     // set with and content type
+      HttpHeaders headers = new HttpHeaders();
+      headers.add("X-Authenticate", payer); // authentication header
+      headers.setContentType(MediaType.APPLICATION_JSON);
+      List<MediaType> mediaTypes = new ArrayList<>();
+      mediaTypes.add(MediaType.APPLICATION_JSON);
+      headers.setAccept(mediaTypes);
 
-    RequestEntity<String> request = new RequestEntity<String>(
-      paymentJson.toString(), headers, 
+      URI paymentUri = URI.create(PAYMENT_URL);
+
+      RequestEntity<JsonObject> request = new RequestEntity<>(
+      paymentJson, headers, 
       HttpMethod.POST, paymentUri);
+    */
+
+    RequestEntity<String> request = RequestEntity
+      .post(PAYMENT_URL)
+      .contentType(MediaType.APPLICATION_JSON)
+      .header("Accept", MediaType.APPLICATION_JSON_VALUE)
+      .header("X-Authenticate", payer)
+      .body(paymentJson.toString(), JsonObject.class);
 
     ResponseEntity<String> response = template.exchange(request, String.class);
 
@@ -118,8 +125,8 @@ public class RestaurantService {
 
       String paymentId = responseJson.getString("payment_id");
       String respOrderId = responseJson.getString("order_id");
-      Date orderDate = new Date(responseJson.getJsonNumber("timestamp")
-        .longValue());
+      Long timestamp = responseJson.getJsonNumber("timestamp").longValue();
+      Date orderDate = new Date(timestamp);
 
       // insert orderid, payment id, date, total, username into mysql
       int rowsInsertSQL = restRepo.insertOrder(respOrderId, paymentId, orderDate, payment, payer);
@@ -130,21 +137,24 @@ public class RestaurantService {
 
         if (insertDoc.containsKey("_id")) {
           System.out.println(">>> Mongo and SQL insert successful");
-          return true;
+          Map<String, Object> feedback = new HashMap<>();
+          feedback.put("paymentId", paymentId);
+          feedback.put("timestamp", timestamp);
+          return feedback;
         } else {
           System.out.println(">>> Mongo insert failed");
-          return false;
+          return null;
         }
 
       } else {
         System.out.println(">>> SQL insert failed");
-        return false;
+        return null;
       }
       
     }
 
-    System.out.println(">>> Payment gateway failed");
-    return false;
+    System.out.println(">>> Payment failed");
+    return null;
 
   }
 

@@ -28,3 +28,8 @@ CREATE TABLE place_orders (
     total DECIMAL(8, 2),
     username VARCHAR(64) NOT NULL
 );
+
+-- TASK 4
+SELECT EXISTS(SELECT 1 FROM customers WHERE username = 'fred' AND password = 'fred');  
+
+SELECT * FROM place_orders;

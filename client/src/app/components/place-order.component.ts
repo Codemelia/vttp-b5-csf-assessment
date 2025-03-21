@@ -1,10 +1,11 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, EventEmitter, inject, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RestaurantStore } from '../restaurant.store';
 import { catchError, map, Observable, Subscription, tap, throwError } from 'rxjs';
 import { MenuItem, Order, OrderItem, OrderResponse } from '../models';
 import { Router } from '@angular/router';
 import { RestaurantService } from '../restaurant.service';
+import { sha224 } from 'js-sha256';
 
 @Component({
   selector: 'app-place-order',
@@ -89,10 +90,11 @@ export class PlaceOrderComponent implements OnInit, OnDestroy {
 
     console.log('>>> Order items: ', this.orderItems)
 
+    let password = this.form.value.password
     // map form and items to order
     const order = { 
       username: this.form.value.username,
-      password: this.form.value.password,
+      password: sha224.update(password).hex(),
       items: this.orderItems
     }
 
@@ -101,13 +103,15 @@ export class PlaceOrderComponent implements OnInit, OnDestroy {
     this.submitSub = this.restSvc.submitOrder(order).pipe(
       map(
         (response: OrderResponse) => {
-          console.log('>>> Order respnse: ', response)
-          return response
+          console.log('>>> Order response: ', response)
+          this.restSvc.saveOrderResponse(response) // save
+          this.router.navigate(['/confirm'])// navigate to view 3
         }
       ),
       catchError(
         (error: OrderResponse) => {
           console.error('>>> Error after order submit: ', error)
+          alert(error.message)
           return throwError(() => error)
         } 
       )

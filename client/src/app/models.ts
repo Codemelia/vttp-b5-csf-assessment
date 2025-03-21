@@ -26,5 +26,9 @@ export interface Order {
 }
 
 export interface OrderResponse {
-    message: string
+    message: string | null
+    orderId: string | null
+    paymentId: string | null
+    total: number | null
+    timestamp: string | null
 }
