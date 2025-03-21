@@ -21,7 +21,6 @@ export class ConfirmationComponent implements OnInit {
     this.response = this.restSvc.getOrderResponse()
     console.log('>>> Timestamp: ', this.response.timestamp)
     this.date = new Date(this.response.timestamp!).toLocaleDateString()
-    // invalid date
   }
 
 }
